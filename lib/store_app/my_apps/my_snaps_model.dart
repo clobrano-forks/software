@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:safe_change_notifier/safe_change_notifier.dart';
 import 'package:snapd/snapd.dart';
@@ -33,11 +34,15 @@ class MySnapsModel extends SafeChangeNotifier {
 
   Future<void> _loadLocalSnaps() async {
     await _client.loadAuthorization();
-    _localSnaps = (await _client.getSnaps())
-        .where(
-          (snap) => _appChangeService.getChange(snap) == null,
-        )
-        .toList();
+    try {
+      _localSnaps = (await _client.getSnaps())
+          .where(
+            (snap) => _appChangeService.getChange(snap) == null,
+          )
+          .toList();
+    } on SocketException {
+      return;
+    }
     _localSnaps.sort((a, b) => a.name.compareTo(b.name));
   }
 }
